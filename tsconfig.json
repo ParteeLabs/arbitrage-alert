@@ -7,11 +7,13 @@
     "strict": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "outDir": "./dist",
-    "rootDir": "./src"
+    "outDir": "./lib",
+    "rootDir": "./",
+    "baseUrl": "./",
   },
   "include": [
-    "src/**/*.ts"
+    "src/**/*.ts",
+    "scripts/**/*.ts"
   ],
   "exclude": [
     "node_modules"

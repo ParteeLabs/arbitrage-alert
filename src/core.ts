@@ -1,8 +1,80 @@
-import { getQuoteFunc } from './interfaces/pair';
+import { getCoinPrices } from './coingecko/coin-gecko';
+import { PoolProvider } from './interfaces/pool-provider';
+import { NotificationProvider } from './interfaces/notification-provider';
 
 export class Core {
-  constructor(private readonly getQuote: getQuoteFunc) {}
+  private readonly leftTokenId: string;
+  private readonly leftTokenAddress: string;
+  private readonly rightTokenId: string;
+  private readonly rightTokenAddress: string;
+  private readonly minProfit: number;
+
+  constructor(
+    private readonly poolProvider: PoolProvider,
+    private readonly notificationProvider: NotificationProvider
+  ) {
+    this.leftTokenId = process.env.LEFT_TOKEN_ID!;
+    if (!this.leftTokenId) {
+      throw new Error('LEFT_TOKEN_ID is missing!');
+    }
+    this.leftTokenAddress = process.env.LEFT_TOKEN_ADDRESS!;
+    if (!this.leftTokenAddress) {
+      throw new Error('LEFT_TOKEN_ADDRESS is missing!');
+    }
+    this.rightTokenId = process.env.RIGHT_TOKEN_ID!;
+    if (!this.rightTokenId) {
+      throw new Error('RIGHT_TOKEN_ID is missing!');
+    }
+    this.rightTokenAddress = process.env.RIGHT_TOKEN_ADDRESS!;
+    if (!this.rightTokenAddress) {
+      throw new Error('RIGHT_TOKEN_ADDRESS is missing!');
+    }
+    this.minProfit = +(process.env.MIN_PROFIT || 5);
+  }
 
   // TODO: implement main function for setup token IDs, token addresses; fetch prices, check pool quote, alerts, etc...
-  async run() {}
+  async run() {
+    /// Read sample amount.
+    let sampleAmount = +(process.env.SAMPLE_AMOUNT || 1);
+    /// Retch tokens global rates.
+    const { [this.leftTokenId]: leftTokenPrice, [this.rightTokenId]: rightTokenPrice } = await getCoinPrices(
+      [this.leftTokenId, this.rightTokenId],
+      'usd'
+    );
+    if (!leftTokenPrice) {
+      throw new Error('Price not found for LEFT token');
+    }
+    if (!rightTokenPrice) {
+      throw new Error('Price not found for RIGHT token');
+    }
+
+    const quote = await this.poolProvider.getQuote(sampleAmount, [
+      this.leftTokenAddress,
+      this.rightTokenAddress,
+      this.leftTokenAddress,
+    ]);
+    /// Ask side check
+    const askSideProfit = await this.getProfit(leftTokenPrice.usd * sampleAmount, rightTokenPrice.usd * quote[0]);
+
+    if (askSideProfit > this.minProfit) {
+      await this.notificationProvider.sendMessage(
+        `Arbitrage opportunity found!\n ${this.leftTokenId} to ${this.rightTokenId}: ${askSideProfit}%`
+      );
+      return;
+    }
+
+    /// Bid side check
+    const bidSideProfit = await this.getProfit(rightTokenPrice.usd * quote[1], leftTokenPrice.usd * quote[2]);
+    if (bidSideProfit > this.minProfit) {
+      this.notificationProvider.sendMessage(
+        `Arbitrage opportunity found!\n ${this.rightTokenId} to ${this.leftTokenId}: ${bidSideProfit}%`
+      );
+      return;
+    }
+  }
+
+  private async getProfit(leftValue: number, rightValue: number) {
+    const delta = leftValue - rightValue;
+    return (delta / leftValue) * 100;
+  }
 }
