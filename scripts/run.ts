@@ -3,6 +3,7 @@ import 'dotenv/config';
 import { Core } from 'src/core';
 import { UniswapV2Pool } from 'src/evm/uniswap-v2-pool';
 import { ConsoleNotifier } from 'src/notification/console-notifier';
+import { TelegramNotifier } from '../src/notification/telergram-notifier';
 
 function getPoolProvider() {
   switch (process.env.POOL_PROVIDER) {
@@ -14,6 +15,8 @@ function getPoolProvider() {
 
 function getNotifier() {
   switch (process.env.NOTIFIER) {
+    case 'telegram':
+      return new TelegramNotifier();
     case 'console':
     default:
       return new ConsoleNotifier();

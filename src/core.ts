@@ -61,6 +61,7 @@ export class Core {
       await this.notificationProvider.sendMessage(
         [
           `Arbitrage opportunity found! ${getLevel(askSideProfit).icon}`,
+          `Network: ${process.env.NETWORK_NAME || process.env.NETWORK_RPC}`,
           `${this.leftTokenId} -> ${this.rightTokenId}: ${askSideProfit.toPrecision(4)}%`,
         ].join('\n')
       );
@@ -73,6 +74,7 @@ export class Core {
       this.notificationProvider.sendMessage(
         [
           `Arbitrage opportunity found! ${getLevel(bidSideProfit).icon}`,
+          `Network: ${process.env.NETWORK_NAME || process.env.NETWORK_RPC}`,
           `${this.rightTokenId} -> ${this.leftTokenId}: ${bidSideProfit.toPrecision(4)}%`,
         ].join('\n')
       );
