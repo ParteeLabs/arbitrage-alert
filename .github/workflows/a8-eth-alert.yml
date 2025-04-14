@@ -42,3 +42,4 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ vars.TELEGRAM_CHAT_ID }}
           POOL_PROVIDER: uniswap-v2
           ROUTER_ADDRESS: '0x88030786602B30f41E9e8ADAfaFb2A7C16A4dBBF'
+          SAMPLE_AMOUNT: ${{ vars.SAMPLE_AMOUNT }}
