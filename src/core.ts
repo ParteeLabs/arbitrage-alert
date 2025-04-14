@@ -56,7 +56,7 @@ export class Core {
     ]);
     /// Ask side check
     const askSideProfit = await this.getProfit(leftTokenPrice.usd * sampleAmount, rightTokenPrice.usd * quote[0]);
-
+    console.log(`Ask side profit: ${askSideProfit.toPrecision(4)}%`);
     if (askSideProfit > this.minProfit) {
       await this.notificationProvider.sendMessage(
         [
@@ -70,8 +70,9 @@ export class Core {
 
     /// Bid side check
     const bidSideProfit = await this.getProfit(rightTokenPrice.usd * quote[1], leftTokenPrice.usd * quote[2]);
+    console.log(`Bid side profit: ${bidSideProfit.toPrecision(4)}%`);
     if (bidSideProfit > this.minProfit) {
-      this.notificationProvider.sendMessage(
+      await this.notificationProvider.sendMessage(
         [
           `Arbitrage opportunity found! ${getLevel(bidSideProfit).icon}`,
           `Network: ${process.env.NETWORK_NAME || process.env.NETWORK_RPC}`,
