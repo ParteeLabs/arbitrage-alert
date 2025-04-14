@@ -54,8 +54,14 @@ export class Core {
       this.rightTokenAddress,
       this.leftTokenAddress,
     ]);
+    const valuesInDollar = [
+      leftTokenPrice.usd * quote[0],
+      rightTokenPrice.usd * quote[1],
+      leftTokenPrice.usd * quote[2],
+    ];
+    console.log(`Values in dollar: ${valuesInDollar.join(' -> ')}`);
     /// Ask side check
-    const askSideProfit = await this.getProfit(leftTokenPrice.usd * sampleAmount, rightTokenPrice.usd * quote[0]);
+    const askSideProfit = await this.getProfit(valuesInDollar[0], valuesInDollar[1]);
     console.log(`Ask side profit: ${askSideProfit.toPrecision(4)}%`);
     if (askSideProfit > this.minProfit) {
       await this.notificationProvider.sendMessage(
@@ -69,7 +75,7 @@ export class Core {
     }
 
     /// Bid side check
-    const bidSideProfit = await this.getProfit(rightTokenPrice.usd * quote[1], leftTokenPrice.usd * quote[2]);
+    const bidSideProfit = await this.getProfit(valuesInDollar[1], valuesInDollar[2]);
     console.log(`Bid side profit: ${bidSideProfit.toPrecision(4)}%`);
     if (bidSideProfit > this.minProfit) {
       await this.notificationProvider.sendMessage(
@@ -83,7 +89,7 @@ export class Core {
   }
 
   private async getProfit(leftValue: number, rightValue: number) {
-    const delta = leftValue - rightValue;
+    const delta = rightValue - leftValue;
     return (delta / leftValue) * 100;
   }
 }
