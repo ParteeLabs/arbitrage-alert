@@ -7,7 +7,8 @@
   "author": "ParteeLabs",
   "scripts": {
     "build": "tsc",
-    "start": "node lib/scripts/run.js"
+    "start": "node lib/scripts/run.js",
+    "start:dev": "ts-node scripts/run.ts"
   },
   "_moduleAliases": {
     "src": "./lib/src",

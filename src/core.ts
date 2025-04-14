@@ -1,6 +1,7 @@
 import { getCoinPrices } from './coingecko/coin-gecko';
 import { PoolProvider } from './interfaces/pool-provider';
 import { NotificationProvider } from './interfaces/notification-provider';
+import { getLevel } from './notification/messages';
 
 export class Core {
   private readonly leftTokenId: string;
@@ -58,7 +59,10 @@ export class Core {
 
     if (askSideProfit > this.minProfit) {
       await this.notificationProvider.sendMessage(
-        `Arbitrage opportunity found!\n ${this.leftTokenId} to ${this.rightTokenId}: ${askSideProfit}%`
+        [
+          `Arbitrage opportunity found! ${getLevel(askSideProfit).icon}`,
+          `${this.leftTokenId} -> ${this.rightTokenId}: ${askSideProfit.toPrecision(4)}%`,
+        ].join('\n')
       );
       return;
     }
@@ -67,9 +71,11 @@ export class Core {
     const bidSideProfit = await this.getProfit(rightTokenPrice.usd * quote[1], leftTokenPrice.usd * quote[2]);
     if (bidSideProfit > this.minProfit) {
       this.notificationProvider.sendMessage(
-        `Arbitrage opportunity found!\n ${this.rightTokenId} to ${this.leftTokenId}: ${bidSideProfit}%`
+        [
+          `Arbitrage opportunity found! ${getLevel(bidSideProfit).icon}`,
+          `${this.rightTokenId} -> ${this.leftTokenId}: ${bidSideProfit.toPrecision(4)}%`,
+        ].join('\n')
       );
-      return;
     }
   }
 
