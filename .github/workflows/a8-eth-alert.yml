@@ -1,0 +1,44 @@
+name: Alert for A8/ETH on Ancient8 DEX
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: '*/15 * * * *'
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --production
+
+      - name: Run arbitrage alert
+        run: pnpm start
+        env:
+          NETWORK_RPC: https://rpc.ancient8.gg
+          NETWORK_NAME: Ancient8
+          LEFT_TOKEN_ID: ancient8
+          LEFT_TOKEN_ADDRESS: '0xD812d616A7C54ee1C8e9c9CD20D72090bDf0d424'
+          RIGHT_TOKEN_ID: ethereum
+          RIGHT_TOKEN_ADDRESS: '0x4200000000000000000000000000000000000006'
+          MIN_PROFIT: 5
+          NOTIFIER: telegram
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ vars.TELEGRAM_CHAT_ID }}
+          POOL_PROVIDER: uniswap-v2
+          ROUTER_ADDRESS: '0x88030786602B30f41E9e8ADAfaFb2A7C16A4dBBF'
