@@ -1,4 +1,5 @@
 import { Extra, NotificationProvider } from '../interfaces/notification-provider';
+import { markdownV2Escape } from '../utils/strings';
 
 export class TelegramNotifier implements NotificationProvider {
   private botToken: string;
@@ -20,7 +21,7 @@ export class TelegramNotifier implements NotificationProvider {
 
     const payload = {
       chat_id: this.chatId,
-      text: message,
+      text: markdownV2Escape(message),
       parse_mode: 'MarkdownV2',
       reply_markup: {
         inline_keyboard: [
