@@ -1,4 +1,4 @@
-import { NotificationProvider } from '../interfaces/notification-provider';
+import { Extra, NotificationProvider } from '../interfaces/notification-provider';
 
 export class TelegramNotifier implements NotificationProvider {
   private botToken: string;
@@ -15,13 +15,23 @@ export class TelegramNotifier implements NotificationProvider {
     }
   }
 
-  async sendMessage(message: string): Promise<void> {
+  async sendMessage(message: string, extras: Extra[] = []): Promise<void> {
     const url = `https://api.telegram.org/bot${this.botToken}/sendMessage`;
 
     const payload = {
       chat_id: this.chatId,
       text: message,
-      parse_mode: 'Markdown',
+      parse_mode: 'MarkdownV2',
+      reply_markup: {
+        inline_keyboard: [
+          extras
+            .filter(({ type }) => ['open-link'].includes(type))
+            .map((extra) => ({
+              text: extra.text,
+              url: extra.link,
+            })),
+        ],
+      },
     };
 
     try {

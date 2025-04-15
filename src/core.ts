@@ -2,6 +2,7 @@ import { getCoinPrices } from './coingecko/coin-gecko';
 import { PoolProvider } from './interfaces/pool-provider';
 import { NotificationProvider } from './interfaces/notification-provider';
 import { getLevel } from './notification/messages';
+import { SwapProvider } from './interfaces/swap-provider';
 
 export class Core {
   private readonly leftTokenId: string;
@@ -12,7 +13,8 @@ export class Core {
 
   constructor(
     private readonly poolProvider: PoolProvider,
-    private readonly notificationProvider: NotificationProvider
+    private readonly notificationProvider: NotificationProvider,
+    private readonly swapProvider: SwapProvider
   ) {
     this.leftTokenId = process.env.LEFT_TOKEN_ID!;
     if (!this.leftTokenId) {
@@ -43,10 +45,10 @@ export class Core {
       'usd'
     );
     if (!leftTokenPrice) {
-      throw new Error('Price not found for LEFT token');
+      throw new Error('Price not found for LEFT token.');
     }
     if (!rightTokenPrice) {
-      throw new Error('Price not found for RIGHT token');
+      throw new Error('Price not found for RIGHT token.');
     }
 
     const quote = await this.poolProvider.getQuote(sampleAmount, [
@@ -69,7 +71,8 @@ export class Core {
           `Arbitrage opportunity found! ${getLevel(askSideProfit).icon}`,
           `Network: ${process.env.NETWORK_NAME || process.env.NETWORK_RPC}`,
           `${this.leftTokenId} -> ${this.rightTokenId}: ${askSideProfit.toPrecision(4)}%`,
-        ].join('\n')
+        ].join('\n'),
+        this.swapProvider.getExtras(this.leftTokenAddress, this.rightTokenAddress)
       );
       return;
     }
@@ -83,7 +86,8 @@ export class Core {
           `Arbitrage opportunity found! ${getLevel(bidSideProfit).icon}`,
           `Network: ${process.env.NETWORK_NAME || process.env.NETWORK_RPC}`,
           `${this.rightTokenId} -> ${this.leftTokenId}: ${bidSideProfit.toPrecision(4)}%`,
-        ].join('\n')
+        ].join('\n'),
+        this.swapProvider.getExtras(this.leftTokenAddress, this.rightTokenAddress)
       );
     }
   }
