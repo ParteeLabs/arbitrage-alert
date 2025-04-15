@@ -1,6 +1,6 @@
 import { getCoinPrices } from './coingecko/coin-gecko';
 import { PoolProvider } from './interfaces/pool-provider';
-import { NotificationProvider } from './interfaces/notification-provider';
+import { Extra, NotificationProvider } from './interfaces/notification-provider';
 import { getLevel } from './notification/messages';
 import { SwapProvider } from './interfaces/swap-provider';
 import { CoinSimplePrice } from './coingecko/types';
@@ -49,21 +49,21 @@ export class Core {
     console.log(`Bid side profit: ${bidSideProfit.toPrecision(4)}%`);
 
     const messages = [`Network: ${process.env.NETWORK_NAME || process.env.NETWORK_RPC}`];
+    let extras: Extra[];
 
     if (askSideProfit > this.minProfit) {
       messages.unshift(`Arbitrage opportunity found! ${getLevel(askSideProfit).icon}`);
       messages.push(`${this.leftTokenId} -> ${this.rightTokenId}: ${askSideProfit.toPrecision(4)}%`);
+      extras = this.swapProvider.getExtras(this.leftTokenAddress, this.rightTokenAddress);
     } else if (bidSideProfit > this.minProfit) {
       messages.unshift(`Arbitrage opportunity found! ${getLevel(bidSideProfit).icon}`);
       messages.push(`${this.rightTokenId} -> ${this.leftTokenId}: ${bidSideProfit.toPrecision(4)}%`);
+      extras = this.swapProvider.getExtras(this.rightTokenAddress, this.leftTokenAddress);
     } else {
       return;
     }
 
-    await this.notificationProvider.sendMessage(
-      messages.join('\n'),
-      this.swapProvider.getExtras(this.leftTokenAddress, this.rightTokenAddress)
-    );
+    await this.notificationProvider.sendMessage(messages.join('\n'), extras);
   }
 
   private async loadPrices() {
