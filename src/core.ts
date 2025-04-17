@@ -53,15 +53,15 @@ export class Core {
 
     if (askSideProfit > this.minProfit) {
       messages.unshift(`Arbitrage opportunity found! ${getLevel(askSideProfit).icon}`);
-      messages.push(`${this.leftTokenId} -> ${this.rightTokenId}: ${askSideProfit.toPrecision(4)}%`);
       extras = this.swapProvider.getExtras(this.leftTokenAddress, this.rightTokenAddress);
     } else if (bidSideProfit > this.minProfit) {
       messages.unshift(`Arbitrage opportunity found! ${getLevel(bidSideProfit).icon}`);
-      messages.push(`${this.rightTokenId} -> ${this.leftTokenId}: ${bidSideProfit.toPrecision(4)}%`);
       extras = this.swapProvider.getExtras(this.rightTokenAddress, this.leftTokenAddress);
     } else {
       return;
     }
+    messages.push(`${this.leftTokenId} -> ${this.rightTokenId}: ${askSideProfit.toPrecision(4)}%`);
+    messages.push(`${this.rightTokenId} -> ${this.leftTokenId}: ${bidSideProfit.toPrecision(4)}%`);
 
     await this.notificationProvider.sendMessage(messages.join('\n'), extras);
   }
@@ -84,23 +84,19 @@ export class Core {
   private async getQuote() {
     /// Read sample amount.
     let sampleAmount = +(process.env.SAMPLE_AMOUNT || 1);
-    /// Retch tokens global rates.
-
-    const quote = await this.poolProvider.getQuote(sampleAmount, [
-      this.leftTokenAddress,
-      this.rightTokenAddress,
-      this.leftTokenAddress,
-    ]);
+    /// Fetch tokens global rates.
+    const quote1 = await this.poolProvider.getQuote(sampleAmount, [this.leftTokenAddress, this.rightTokenAddress]);
+    const quote2 = await this.poolProvider.getQuote(quote1[1], [this.rightTokenAddress, this.leftTokenAddress]);
     this.valuesInDollar = [
-      this.leftTokenPrice.usd * quote[0],
-      this.rightTokenPrice.usd * quote[1],
-      this.leftTokenPrice.usd * quote[2],
+      this.leftTokenPrice.usd * quote1[0],
+      this.rightTokenPrice.usd * quote1[1],
+      this.leftTokenPrice.usd * quote2[1],
     ];
     console.log(`Values in dollar: ${this.valuesInDollar.join(' -> ')}`);
   }
 
-  private getProfit(leftValue: number, rightValue: number) {
-    const delta = rightValue - leftValue;
-    return (delta / leftValue) * 100;
+  private getProfit(inValue: number, outValue: number) {
+    const delta = outValue - inValue;
+    return (delta / inValue) * 100;
   }
 }
